@@ -1,0 +1,2122 @@
+{
+  "name": "My workflow 4",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🚀 SPUSTENIE WORKFLOW\n\n**Dva spôsoby spustenia – oba vedú do rovnakého flow:**\n\n### Schedule Trigger (automatický)\n- Beží automaticky každých **6 hodín**\n- Nastavenie: Editor → Schedule Trigger → Interval\n- Odporúčaný interval pre väčšie weby: 12h alebo 24h\n\n### Manual Trigger (manuálny)\n- Klikni **▶ Execute workflow** v pravom hornom rohu\n- Použi pri prvom testovaní alebo pri debugovaní\n- Nezabudni mať najprv vyplnený **Set Config** node\n\n⚠️ Pri prvom spustení odporúčame Manual Trigger, aby si videl výsledky v reálnom čase.",
+        "height": 380,
+        "width": 604,
+        "color": 5
+      },
+      "id": "e2766707-1ddc-4102-92e0-6af1ebf2d586",
+      "name": "Note: Triggers",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -6880,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ KONFIGURÁCIA – POVINNÉ NASTAVENIA\n\nOtvor node **Set Config** a vyplň tieto hodnoty:\n\n---\n\n### 1. `site_url`\nURL tvojho WordPress webu **bez lomky na konci**\n```\nhttps://moja-stranka.sk\n```\n\n### 2. `site_label`\nKrátky identifikátor webu (zobrazuje sa v Slacku a v GDocs)\n```\nmoja-stranka.sk\n```\n\n### 3. `spreadsheet_id`\nID Google Sheets tabuľky kde sa ukladá pamäť.\nNájdeš ho v URL tabuľky:\n```\nhttps://docs.google.com/spreadsheets/d/ →→ ID →← /edit\n```\nPríklad: `1nPZNOe7S-nFcBA0ll-bXHDw8N46c-HBDJ6SKLEyf2tw`\n\n### 4. `sheet_name`\nNázov listu (záložky) v tabuľke. Default hodnota:\n```\nmemory\n```\n⚠️ List musí existovať a mať správnu hlavičku – pozri notu **SHEETS HLAVIČKA**\n\n### 5. `gdrive_folder_id`\nID priečinka v Google Drive kam sa ukladajú GDocs.\n\n**Ako vytvoriť priečinok a získať ID:**\n1. Choď na https://drive.google.com\n2. Klikni **+ Nový → Priečinok**, pomenuj ho napr. `mojastranka_allposts`\n3. Otvor priečinok → pozri URL:\n```\nhttps://drive.google.com/drive/folders/ →→ ID ←←\n```\n4. Skopíruj ID za `/folders/`\nPríklad: `1p3jPAIZBJKRHNCF-q4MMr6eTtdNGemFa`\n\n⚠️ Priečinok musí byť dostupný pre Google account použitý v Drive credentials.",
+        "height": 1148,
+        "width": 612,
+        "color": 3
+      },
+      "id": "0d10e58e-b012-4122-b7b5-cce07d6a1c45",
+      "name": "Note: Set Config",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -6896,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔑 CREDENTIALS – PODROBNÝ NÁVOD\n\n### A) WordPress API\n**Použitie:** Node `GET Full WP Post`\n\n1. Prihlás sa do WP Admina\n2. Choď na **Users → Your Profile → Application Passwords**\n3. Zadaj názov napr. `n8n-api` → klikni **Add New**\n4. Skopíruj vygenerované heslo (zobrazí sa len raz!)\n5. V n8n: Credentials → New → **WordPress API**\n   - URL: `https://tvoj-web.sk`\n   - Username: tvoje WP meno\n   - Password: skopírované application password\n\n---\n\n### B) Google Sheets OAuth2\n**Použitie:** Sheets Read All, Append, Update, Get Pending...\n\n1. Choď na https://console.cloud.google.com\n2. Vytvor projekt alebo použi existujúci\n3. **APIs & Services → Enable APIs → Google Sheets API** ✅\n4. **Credentials → Create → OAuth 2.0 Client ID**\n   - Application type: Web application\n   - Redirect URI: `https://[tvoj-n8n-host]/rest/oauth2-credential/callback`\n5. V n8n: Credentials → New → **Google Sheets OAuth2 API**\n   - Vlož Client ID a Client Secret\n   - Klikni **Connect** a autorizuj\n\n---\n\n### C) Google Drive OAuth2\n**Použitie:** Drive Search Doc, Delete Drive Doc\n\n1. Rovnaký Google Cloud projekt ako pre Sheets\n2. **APIs & Services → Enable APIs → Google Drive API** ✅\n3. Použi rovnaký OAuth2 Client ID alebo vytvor nový\n4. V n8n: Credentials → New → **Google Drive OAuth2 API**\n\n---\n\n### D) Google Docs OAuth2\n**Použitie:** Docs Insert Content, Docs Insert HTML\n\n1. **APIs & Services → Enable APIs → Google Docs API** ✅\n2. V n8n: Credentials → New → **Google Docs OAuth2 API**\n\n💡 Pre B, C, D môžeš použiť jeden OAuth2 client ak povolíš všetky 3 API.\n\n---\n\n### E) Slack OAuth2\n**Použitie:** Slack Summary, Slack Modified Notify, Send a message\n\n1. Choď na https://api.slack.com/apps\n2. **Create New App → From scratch**\n3. **OAuth & Permissions → Scopes → Bot Token Scopes:**\n   - `chat:write`\n   - `channels:read`\n4. **Install to Workspace** → skopíruj **Bot User OAuth Token**\n5. Pridaj bota do kanála: `/invite @meno-bota` v Slacku\n6. V n8n: Credentials → New → **Slack OAuth2 API**\n\n---\n\n### Priradenie credentials ku nodom:\n| Node | Credential typ |\n|---|---|\n| GET Full WP Post | WordPress API |\n| Sheets Read All | Google Sheets OAuth2 |\n| Sheets Append Pending | Google Sheets OAuth2 |\n| Sheets Get Pending | Google Sheets OAuth2 |\n| Sheets Mark Already Extracted | Google Sheets OAuth2 |\n| Sheets Update Extracted | Google Sheets OAuth2 |\n| Sheets Reset to Pending | Google Sheets OAuth2 |\n| Sheets Mark Skip Error | Google Sheets OAuth2 |\n| Drive Search Doc | Google Drive OAuth2 |\n| Delete Drive Doc | Google Drive OAuth2 |\n| Docs Create (Upload HTML→GDoc) | Google Drive OAuth2 |\n| Docs Create HTML | Google Drive OAuth2 |\n| Docs Insert Content | Google Docs OAuth2 |\n| Docs Insert HTML | Google Docs OAuth2 |\n| Slack Summary | Slack OAuth2 |\n| Slack Modified Notify | Slack OAuth2 |\n| Send a message | Slack OAuth2 |",
+        "height": 1580,
+        "width": 672,
+        "color": 6
+      },
+      "id": "566eda0d-811a-4d90-b2d3-6ac27adae39b",
+      "name": "Note: Credentials",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -7584,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 📊 GOOGLE SHEETS – NASTAVENIE TABUĽKY\n\n### Krok 1: Vytvor novú tabuľku\n1. Choď na https://sheets.google.com\n2. Vytvor novú tabuľku, pomenuj ju napr. `Wordpress Posts To Google Drive`\n3. Premenuj záložku (list) na: **memory**\n\n### Krok 2: Vlož hlavičku (riadok 1)\nDo riadku 1 vlož presne tieto stĺpce v tomto poradí:\n\n| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n| wp_id | post_type | slug | title | status | date_published | date_modified | link | extraction_status | gdoc_id | gdoc_url | gdoc_html_id | gdoc_html_url | extracted_at | site_url |\n\n💡 Tip: Skopíruj riadok nižšie priamo do bunky A1:\n```\nwp_id\tpost_type\tslug\ttitle\tstatus\tdate_published\tdate_modified\tlink\textraction_status\tgdoc_id\tgdoc_url\tgdoc_html_id\tgdoc_html_url\textracted_at\tsite_url\n```\n\n### Krok 3: Získaj Spreadsheet ID\nZ URL tabuľky skopíruj ID a vlož ho do **Set Config → spreadsheet_id**:\n```\nhttps://docs.google.com/spreadsheets/d/[TU_JE_ID]/edit\n```\n\n### Prehľad stavov (stĺpec I – extraction_status):\n| Stav | Význam |\n|---|---|\n| `pending` | Čaká na extrakciu (nový alebo resetovaný post) |\n| `extracted` | GDocs úspešne vytvorené |\n| `already_extracted` | GDoc existoval v Drive (preskočený) |\n| `skip_error` | WP API vrátilo chybu, post preskočený |\n\n⚠️ Kľúčový stĺpec pre matching je **slug** (stĺpec C).\n`wp_id` a `title` sú pri prvom zápise prázdne – doplnia sa automaticky pri extrakcii.",
+        "height": 760,
+        "width": 1280,
+        "color": 6
+      },
+      "id": "be2cdbbf-3750-4fbb-a08f-6c39ccfdd285",
+      "name": "Note: Sheets Header",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -7568,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔄 PREHĽAD FLOW – ČO SA DEJE PO SPUSTENÍ\n\n```\nTrigger\n  └─► Set Config\n        ├─► Fetch Sitemap Index → Parse → Fetch Sub-Sitemap\n        │     → Parse Sub-Sitemap URLs\n        │                                  ↘\n        └─► Sheets Read All → Tag Sheet Rows → Merge Sources\n                                                    ↙           ↘\n                                         Find New Posts    Find Modified Posts\n```\n\n### Vetva 1 – Nové posty:\n```\nFind New Posts\n  → IF Has New Posts\n      TRUE  → Sheets Append Pending → Collapse to Trigger\n      FALSE → (pokračuje priamo) → Sheets Get Pending\n\nSheets Get Pending → Filter Pending Only → IF Has Pending\n  TRUE  → GET Full WP Post → Prepare Content → IF Skip Post\n            OK  → Drive Search Doc → IF Doc Exists\n                    EXISTS  → Sheets Mark Already Extracted\n                    NOVÝ    → Docs Create (HTML→GDoc)\n                              → Docs Create HTML\n                              → Docs Insert HTML\n                              → Sheets Update Extracted\n                              → Collect Post Data → Aggregate\n                              → Build Slack Summary\n                              → IF Has Extractions → Slack Summary ✅\n            SKIP → Sheets Mark Skip Error\n  FALSE → Send a message (nič nové) ℹ️\n```\n\n### Vetva 2 – Upravené posty (paralelná, neruší Vetvu 1):\n```\nFind Modified Posts → IF Has Modified\n  TRUE  → Prepare Doc IDs\n           → Delete Drive Doc (zmaže staré GDocs)\n           → Deduplicate Slugs\n           → Sheets Reset to Pending\n                ├─► Build Modified Message → Slack Modified Notify 🔄\n                └─► GET Full WP Post → (pokračuje cez Vetvu 1)\n```\n\n✅ Žiadny loop – n8n spracuje každý item prirodzene.\n✅ Slack posiela JEDNU súhrnnú správu po celom behu.\n✅ 2 GDocs per post: čistý text (Readable) + čisté HTML pre WP.",
+        "height": 1384,
+        "width": 1200,
+        "color": 7
+      },
+      "id": "23beea10-1369-41d7-abc1-805ace45ece8",
+      "name": "Note: Loop",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -8832,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 📁 GOOGLE DRIVE – NASTAVENIE PRIEČINKA\n\n### Krok 1: Vytvor priečinok\n1. Choď na https://drive.google.com\n2. Klikni **+ Nový → Priečinok**\n3. Pomenuj ho napr. `mojastranka_allposts`\n4. Klikni **Vytvoriť**\n\n### Krok 2: Získaj ID priečinka\n1. Otvor nový priečinok\n2. Pozri URL v prehliadači:\n```\nhttps://drive.google.com/drive/folders/[TU_JE_ID]\n```\n3. Skopíruj ID (dlhý reťazec za `/folders/`)\n4. Vlož ho do **Set Config → gdrive_folder_id**\n\n### Krok 3: Skontroluj prístup\n- Google account použitý v Drive OAuth2 credentials musí mať práva **Editor** alebo **Owner** na priečinok\n- Ak používaš Service Account: zdieľaj priečinok na email service accountu\n\n### Čo sa ukladá do priečinka:\nPre každý WordPress post sa vytvorí **2 súbory**:\n\n| Súbor | Názov | Obsah |\n|---|---|---|\n| GDoc (Readable) | `[wp_id] Názov článku` | Čitateľný text s metadátami |\n| GDoc (HTML) | `[wp_id] Názov článku – HTML` | Čisté HTML pre copy-paste do WP |\n\n⚠️ Pri detekovanej zmene článku (v12 vetva) sa staré súbory **automaticky vymažú** a nahradia novými.\n\n### Odstraňovanie problémov:\n- Ak Drive Search Doc vracia prázdne výsledky: skontroluj `gdrive_folder_id`\n- Ak Docs Create zlyhá (403): over, či má OAuth2 account práva na priečinok\n- Ak vidíš duplicitné súbory: spusti workflow znova, Drive Search Doc ich deteguje",
+        "height": 780,
+        "width": 560,
+        "color": 4
+      },
+      "id": "ab30dca7-0945-4b88-8765-b476eff7fc79",
+      "name": "Note: Opravy v11",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -6256,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔄 VETVA DETEKCIE ZMIEN (v12)\n\n### Čo robí táto vetva:\nParalelne s hlavným flow sleduje, či boli existujúce posty upravené vo WordPresse.\n\n**Logika detekcie:**\n- Porovná `lastmod` z XML sitemaps s `date_modified` v Google Sheets\n- Ak `sitemap lastmod` > `sheet date_modified` → post bol upravený\n- Posty so statusom `pending` sa preskočia (čakajú na extrakciu)\n\n---\n\n### Postup pri nájdení zmeny:\n\n**1. Prepare Doc IDs**\n→ Pripraví ID oboch GDocs (readable + HTML) na zmazanie\n\n**2. Delete Drive Doc** *(continueOnFail: true)*\n→ Zmaže staré GDocs z Google Drive\n→ Ak dokument neexistuje, pokračuje ďalej bez chyby\n\n**3. Deduplicate Slugs**\n→ Zlúči 2 doc-items (readable + HTML) späť na 1 item per slug\n\n**4. Sheets Reset to Pending**\n→ Nastaví `extraction_status = pending`\n→ Aktualizuje `date_modified` na nový dátum zo sitemapy\n→ Vymaže: `gdoc_id`, `gdoc_url`, `gdoc_html_id`, `gdoc_html_url`, `extracted_at`\n\n**5a. Build Modified Message → Slack Modified Notify**\n→ Pošle Slack notifikáciu o zmenách\n\n**5b. GET Full WP Post → [celý extraction flow]**\n→ V ROVNAKOM BEHU vytvorí nové GDocs\n→ Netreba čakať na ďalší 6h cyklus!\n\n---\n\n### Dôležité poznámky:\n⚠️ Táto vetva NEPRERUŠUJE hlavný flow (Vetva 1)\n⚠️ Node `Docs Insert Content` je **disabled** – bol odpojený v v12 (spôsoboval deadlock)\n✅ Re-extrakcia prebieha okamžite, nie až o 6 hodín\n✅ Existujúce nody neboli zmenené",
+        "height": 996,
+        "width": 552,
+        "color": 2
+      },
+      "id": "1f9d594b-785b-4d0d-b6b3-000ac9b3b1d2",
+      "name": "Note: v12 Modified Branch",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -6256,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "9899a09e-bd62-4d85-a887-0cd071b4d0c7",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -5056,
+        1008
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "01fb6e60-02f2-4684-a75b-69ceaacb0348",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -5056,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c01",
+              "name": "site_url",
+              "value": "https://moja-stranka.sk",
+              "type": "string"
+            },
+            {
+              "id": "c02",
+              "name": "site_label",
+              "value": "moja-stranka.sk",
+              "type": "string"
+            },
+            {
+              "id": "c03",
+              "name": "spreadsheet_id",
+              "value": "1nPZNOe7S-nFcBA0ll-bXHDw8N46c-HBDJ6SKLEyf2tw",
+              "type": "string"
+            },
+            {
+              "id": "c04",
+              "name": "sheet_name",
+              "value": "memory",
+              "type": "string"
+            },
+            {
+              "id": "c05",
+              "name": "gdrive_folder_id",
+              "value": "1p3jPAIZBJKRHNCF-q4MMr6eTtdNGemFa",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5aa8cdd9-c07b-4bc7-ae40-0d9ccc48499e",
+      "name": "Set Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4832,
+        1104
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Set Config').first().json.site_url }}/sitemap_index.xml",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "e884e705-d891-4c2f-8a94-af77b7478dab",
+      "name": "Fetch Sitemap Index",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4608,
+        1008
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parsuj sitemap_index.xml a vráť len obsahové sitemaps\nconst xmlText = $json.data || '';\n\nconst relevantPatterns = [\n  'post-sitemap.xml',\n  'terminologia-sitemap.xml',\n  'hub-destinacii-sitemap.xml'\n];\n\nconst sitemapBlocks = xmlText.match(/<sitemap>[\\s\\S]*?<\\/sitemap>/g) || [];\n\nconst result = [];\nfor (const block of sitemapBlocks) {\n  const locMatch = block.match(/<loc>(.*?)<\\/loc>/);\n  if (!locMatch) continue;\n  const url = locMatch[1].trim();\n\n  const matched = relevantPatterns.find(p => url.includes(p));\n  if (!matched) continue;\n\n  let post_type = 'posts';\n  if (url.includes('terminologia')) post_type = 'terminologia';\n  else if (url.includes('hub-destinacii')) post_type = 'hub-destinacii';\n\n  result.push({ json: { sitemap_url: url, post_type } });\n}\n\nif (result.length === 0) {\n  throw new Error('[Parse Sitemaps] Žiadne relevantné sitemaps nenájdené. Skontroluj site_url v Set Config.');\n}\n\nconsole.log(`[Parse Sitemaps] Nájdených ${result.length} sitemáp: ${result.map(r => r.json.post_type).join(', ')}`);\nreturn result;"
+      },
+      "id": "4f9f4169-b2e4-4a36-a1df-9c8424c59deb",
+      "name": "Parse & Filter Sitemaps",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4384,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.sitemap_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "81aed1c2-116b-48b3-aef3-b124cce00160",
+      "name": "Fetch Sub-Sitemap",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4160,
+        1008
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {\n  json: {\n    ...$json,\n    post_type: $('Parse & Filter Sitemaps').item.json.post_type\n  }\n};"
+      },
+      "id": "55da250e-bd34-423e-9460-8260258365e8",
+      "name": "Re-attach Post Type",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3936,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const siteLabel = $('Set Config').first().json.site_label;\nconst output = [];\n\nfor (const item of items) {\n  const xml = item.json.data || '';\n  const postType = item.json.post_type || 'posts';\n\n  const urlBlocks = xml.match(/<url>[\\s\\S]*?<\\/url>/g) || [];\n\n  for (const block of urlBlocks) {\n    const locMatch     = block.match(/<loc>(.*?)<\\/loc>/);\n    const lastmodMatch = block.match(/<lastmod>(.*?)<\\/lastmod>/);\n    if (!locMatch) continue;\n\n    const url     = locMatch[1].trim();\n    const lastmod = lastmodMatch ? lastmodMatch[1].trim() : '';\n    const cleanUrl = url.replace(/\\/$/, '');\n    const slug = cleanUrl.split('/').pop();\n    if (!slug) continue;\n\n    output.push({\n      json: {\n        _source:        'sitemap',\n        wp_id:          '',\n        post_type:      postType,\n        slug,\n        title:          '',\n        status:         'publish',\n        date_published: lastmod,\n        date_modified:  lastmod,\n        link:           url,\n        site_url:       siteLabel\n      }\n    });\n  }\n}\n\nconsole.log(`[Parse Sitemap URLs] Celkovo URL: ${output.length}`);\nreturn output.length > 0 ? output : [{ json: { _source: 'sitemap', slug: null, wp_id: null } }];"
+      },
+      "id": "d7b59038-1535-4483-a283-3a82e69fac9b",
+      "name": "Parse Sub-Sitemap URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3712,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1nPZNOe7S-nFcBA0ll-bXHDw8N46c-HBDJ6SKLEyf2tw",
+          "mode": "list",
+          "cachedResultName": "Wordpress Posts To Google Drive",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nPZNOe7S-nFcBA0ll-bXHDw8N46c-HBDJ6SKLEyf2tw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "memory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nPZNOe7S-nFcBA0ll-bXHDw8N46c-HBDJ6SKLEyf2tw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "b705a649-79a1-4789-8daa-68743b27bf64",
+      "name": "Sheets Read All",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -3936,
+        1200
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vAfXWITi6NhhXukp",
+          "name": "moja-stranka.sk Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s01",
+              "name": "_source",
+              "value": "sheet",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a0053c00-5514-4ba4-9569-24eebc1e8b5e",
+      "name": "Tag Sheet Rows",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3712,
+        1200
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "id": "8731adb8-d76d-40b8-a5ad-0a79ae5575d3",
+      "name": "Merge Sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -3488,
+        1104
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const sitemapItems = items.filter(i => i.json._source === 'sitemap');\nconst sheetItems   = items.filter(i => i.json._source === 'sheet');\n\nconsole.log(`[Find New] Sitemap URL: ${sitemapItems.length} | Sheets riadkov: ${sheetItems.length}`);\n\nconst trackedSlugs = new Set(\n  sheetItems\n    .map(i => String(i.json.slug || '').trim())\n    .filter(Boolean)\n);\n\nconst newPosts = sitemapItems.filter(\n  i => i.json.slug && !trackedSlugs.has(String(i.json.slug).trim())\n);\n\nconsole.log(`[Find New] Nových postov na pridanie: ${newPosts.length}`);\n\nif (newPosts.length === 0) {\n  return [{ json: { has_new: false, count: 0 } }];\n}\n\nreturn newPosts.map(i => ({\n  json: {\n    has_new:           true,\n    wp_id:             '',\n    post_type:         i.json.post_type,\n    slug:              i.json.slug,\n    title:             '',\n    status:            'publish',\n    date_published:    i.json.date_published,\n    date_modified:     i.json.date_modified,\n    link:              i.json.link,\n    extraction_status: 'pending',\n    gdoc_id:           '',\n    gdoc_url:          '',\n    extracted_at:      '',\n    site_url:          i.json.site_url\n  }\n}));"
+      },
+      "id": "d018d4f6-423c-4905-ad8c-bb9f81823030",
+      "name": "Find New Posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3264,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond01",
+              "leftValue": "={{ $json.has_new }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "10392530-14d3-4ea8-9d92-dd943f14499e",
+      "name": "IF Has New Posts",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3040,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.sheet_name }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "wp_id": "={{ $json.wp_id }}",
+            "post_type": "={{ $json.post_type }}",
+            "slug": "={{ $json.slug }}",
+            "title": "={{ $json.title }}",
+            "status": "={{ $json.status }}",
+            "date_published": "={{ $json.date_published }}",
+            "date_modified": "={{ $json.date_modified }}",
+            "link": "={{ $json.link }}",
+            "extraction_status": "pending",
+            "site_url": "={{ $json.site_url }}"
+          },
+          "matchingColumns": [
+            "slug"
+          ],
+          "schema": [
+            {
+              "id": "wp_id",
+              "displayName": "wp_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "post_type",
+              "displayName": "post_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "date_published",
+              "displayName": "date_published",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "date_modified",
+              "displayName": "date_modified",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "extraction_status",
+              "displayName": "extraction_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "gdoc_id",
+              "displayName": "gdoc_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "gdoc_url",
+              "displayName": "gdoc_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "extracted_at",
+              "displayName": "extracted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "site_url",
+              "displayName": "site_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "gdoc_html_id",
+              "displayName": "gdoc_html_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "gdoc_html_url ",
+              "displayName": "gdoc_html_url ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "4ee32d8b-6e8f-4193-bbb1-7d94eab98e34",
+      "name": "Sheets Append Pending",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2816,
+        912
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vAfXWITi6NhhXukp",
+          "name": "moja-stranka.sk Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { trigger: true, just_appended: items.length } }];"
+      },
+      "id": "1704489a-1f5d-4995-99cc-b285390bf6a9",
+      "name": "Collapse to Trigger",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2592,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.sheet_name }}",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "3edc355f-58b3-4cdb-b8c0-29fe455e47c5",
+      "name": "Sheets Get Pending",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2368,
+        912
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vAfXWITi6NhhXukp",
+          "name": "moja-stranka.sk Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const pending = items.filter(i => {\n  const status = String(i.json.extraction_status || '').trim().toLowerCase();\n  return status === 'pending';\n});\n\nif (pending.length === 0) {\n  console.log('[Filter] Žiadne pending posty – všetko spracované.');\n  return [{ json: { has_pending: false, count: 0 } }];\n}\n\nconsole.log(`[Filter] Pending postov na spracovanie: ${pending.length}`);\nreturn pending;"
+      },
+      "id": "95b3fda1-6241-4500-9583-77f52a752f4f",
+      "name": "Filter Pending Only",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2144,
+        912
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ifpend01",
+              "leftValue": "={{ $json.slug }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0b5202e7-4beb-4084-8c2a-dacf254414d4",
+      "name": "IF Has Pending",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1920,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Set Config').first().json.site_url }}/wp-json/wp/v2/{{ $json.post_type }}?slug={{ $json.slug }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "options": {}
+      },
+      "id": "9384bcab-d2d6-441c-84fc-54ee408ca101",
+      "name": "GET Full WP Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1696,
+        912
+      ],
+      "credentials": {
+        "wordpressApi": {
+          "id": "h35hQyk5LBX8qJuC",
+          "name": "moja-stranka.sk API"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nfunction getInnerText(html) {\n  if (!html) return '';\n  return html\n    .replace(/<[^>]+>/g, '')\n    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')\n    .replace(/&quot;/g, '\"').replace(/&#039;/g, \"'\").replace(/&nbsp;/g, ' ')\n    .replace(/&ndash;/g, '–').replace(/&mdash;/g, '—').replace(/&hellip;/g, '…')\n    .replace(/&#\\d+;/g, '').trim();\n}\n\nfunction htmlToCleanWP(html) {\n  if (!html) return '';\n  let c = html;\n  c = c.replace(/\\[[^\\]]*\\]/g, '');\n  c = c.replace(/<script[\\s\\S]*?<\\/script>/gi, '');\n  c = c.replace(/<style[\\s\\S]*?<\\/style>/gi, '');\n  c = c.replace(/<noscript[\\s\\S]*?<\\/noscript>/gi, '');\n  c = c.replace(/<figure[\\s\\S]*?<\\/figure>/gi, '');\n  c = c.replace(/<picture[\\s\\S]*?<\\/picture>/gi, '');\n  c = c.replace(/<img[^>]*\\/?>/gi, '');\n  c = c.replace(/<video[\\s\\S]*?<\\/video>/gi, '');\n  c = c.replace(/<audio[\\s\\S]*?<\\/audio>/gi, '');\n  c = c.replace(/<iframe[\\s\\S]*?<\\/iframe>/gi, '');\n  c = c.replace(/<svg[\\s\\S]*?<\\/svg>/gi, '');\n  c = c.replace(/<source[^>]*\\/?>/gi, '');\n  c = c.replace(/<\\/?(?:div|section|article|aside|header|footer|nav|main|span|figure|figcaption)[^>]*>/gi, '');\n  c = c.replace(/<a\\s+[^>]*?href=[\"']([^\"']*)[\"'][^>]*>/gi, '<a href=\"$1\">');\n  const allowedTags = 'h1|h2|h3|h4|h5|h6|p|ul|ol|li|table|thead|tbody|tfoot|tr|th|td|strong|b|em|i|blockquote|br|hr';\n  c = c.replace(new RegExp(`<(${allowedTags})\\\\s+[^>]*>`, 'gi'), (_, tag) => `<${tag.toLowerCase()}>`);\n  const keepPattern = new RegExp(`</?(?:${allowedTags}|a)(?:\\\\s[^>]*)?>`, 'gi');\n  const placeholder = {};\n  let pIdx = 0;\n  c = c.replace(keepPattern, (match) => { const key = `__KEEP${pIdx}__`; placeholder[key] = match; pIdx++; return key; });\n  c = c.replace(/<[^>]+>/g, '');\n  for (const [key, val] of Object.entries(placeholder)) { c = c.replace(key, val); }\n  c = c.replace(/<p>\\s*<\\/p>/gi, '');\n  c = c.replace(/<p>&nbsp;<\\/p>/gi, '');\n  c = c.replace(/<p>\\s*<br>\\s*<\\/p>/gi, '');\n  c = c.replace(/&nbsp;/g, ' ').replace(/&ndash;/g, '–').replace(/&mdash;/g, '—').replace(/&hellip;/g, '…');\n  return c.replace(/\\n{3,}/g, '\\n\\n').trim();\n}\n\nconst origSlug     = $('Filter Pending Only').item?.json?.slug     || $json.slug || 'unknown';\nconst origPostType = $('Filter Pending Only').item?.json?.post_type || $json.post_type || 'unknown';\n\nif ($json.error || ($json.statusCode !== undefined && $json.statusCode >= 400) || $json.code) {\n  console.log(`[Prepare Content] SKIP – HTTP chyba pre slug: ${origSlug}`);\n  return { json: { _skip: true, _skip_reason: 'http_error', slug: origSlug, post_type: origPostType } };\n}\n\nconst post = Array.isArray($json) ? ($json[0] || null) : $json;\nif (!post || !post.id) {\n  console.log(`[Prepare Content] SKIP – Post nenájdený pre slug: ${origSlug}`);\n  return { json: { _skip: true, _skip_reason: 'post_not_found', slug: origSlug, post_type: origPostType } };\n}\n\nconst wpId          = String(post.id);\nconst titleRaw      = post.title?.rendered   || 'Bez názvu';\nconst contentRaw    = post.content?.rendered || '';\nconst title         = getInnerText(titleRaw);\nconst datePublished = post.date     || '';\nconst dateModified  = post.modified || '';\nconst link          = post.link     || '';\nconst slug          = post.slug     || '';\nconst postType      = post.type     || '';\nconst siteLabel     = $('Set Config').first().json.site_label;\nconst folderId      = $('Set Config').first().json.gdrive_folder_id;\n\nconst contentHtmlClean = htmlToCleanWP(contentRaw);\n\nconst safeTitle = title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');\nconst metaRows = [\n  `<tr><td><strong>URL</strong></td><td><a href=\"${link}\">${link}</a></td></tr>`,\n  `<tr><td><strong>WP ID</strong></td><td>${wpId}</td></tr>`,\n  `<tr><td><strong>Slug</strong></td><td>${slug}</td></tr>`,\n  `<tr><td><strong>Typ</strong></td><td>${postType}</td></tr>`,\n  `<tr><td><strong>Publikované</strong></td><td>${datePublished.substring(0,10)}</td></tr>`,\n  `<tr><td><strong>Upravené</strong></td><td>${dateModified.substring(0,10)}</td></tr>`,\n  `<tr><td><strong>Web</strong></td><td>${siteLabel}</td></tr>`,\n].join('');\n\nconst content_gdoc_html = `<!DOCTYPE html>\\n<html><head><meta charset=\"UTF-8\"></head><body>\\n<h1>${safeTitle}</h1>\\n<table>${metaRows}</table>\\n<hr>\\n${contentHtmlClean}\\n</body></html>`;\n\nconst content_html = [\n  `<!-- WP ID: ${wpId} | SLUG: ${slug} | TYP: ${postType} -->`,\n  `<!-- TITULOK: ${title} -->`,\n  `<!-- URL: ${link} -->`,\n  `<!-- PUBLIKOVANÉ: ${datePublished} | UPRAVENÉ: ${dateModified} -->`,\n  '',\n  contentHtmlClean\n].join('\\n');\n\nconsole.log(`[Prepare Content] OK – slug: ${slug} | wp_id: ${wpId} | title: ${title.substring(0,60)}`);\n\nreturn {\n  json: {\n    _skip:            false,\n    wp_id:            wpId,\n    title,\n    slug,\n    link,\n    date_published:   datePublished,\n    date_modified:    dateModified,\n    post_type:        postType,\n    site_url:         siteLabel,\n    content_gdoc_html,\n    content_html,\n    doc_title:        `[${wpId}] ${title}`,\n    doc_title_html:   `[${wpId}] ${title} – HTML`,\n    gdrive_folder_id: folderId\n  }\n};\n"
+      },
+      "id": "fd0468ef-74b1-4509-8917-a7b18444f846",
+      "name": "Prepare Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1472,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "skip01",
+              "leftValue": "={{ $json._skip }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "28e1579e-427c-4c5f-b82c-8742a71c232d",
+      "name": "IF Skip Post",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1248,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ \"name contains '[\" + $json.wp_id + \"]' and '\" + $json.gdrive_folder_id + \"' in parents and mimeType = 'application/vnd.google-apps.document' and trashed = false\" }}"
+            },
+            {
+              "name": "fields",
+              "value": "files(id,name,webViewLink)"
+            },
+            {
+              "name": "pageSize",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4d339f84-ea90-4fa8-9ef9-58ffff909513",
+      "name": "Drive Search Doc",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1024,
+        816
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "cY4ArU5wi2Ptf9Oi",
+          "name": "Google Drive moja-stranka.sk"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond02",
+              "leftValue": "={{ $json.files.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5acf349b-7ab1-457f-8809-906d42933f92",
+      "name": "IF Doc Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -800,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.sheet_name }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "slug": "={{ $('Prepare Content').item.json.slug }}",
+            "wp_id": "={{ $('Prepare Content').item.json.wp_id }}",
+            "title": "={{ $('Prepare Content').item.json.title }}",
+            "post_type": "={{ $('Prepare Content').item.json.post_type }}",
+            "extraction_status": "already_extracted",
+            "gdoc_id": "={{ $json.files[0].id }}",
+            "gdoc_url": "={{ $json.files[0].webViewLink }}",
+            "extracted_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "slug"
+          ],
+          "schema": [
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "wp_id",
+              "displayName": "wp_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "post_type",
+              "displayName": "post_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "extraction_status",
+              "displayName": "extraction_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "gdoc_id",
+              "displayName": "gdoc_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "gdoc_url",
+              "displayName": "gdoc_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "extracted_at",
+              "displayName": "extracted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "62882cb3-d9f0-4b83-ac72-8a1c9f6eb311",
+      "name": "Sheets Mark Already Extracted",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -576,
+        720
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vAfXWITi6NhhXukp",
+          "name": "moja-stranka.sk Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "multipart/related; boundary=WORKFLOW_GDOC_BOUNDARY",
+        "body": "={{ '--WORKFLOW_GDOC_BOUNDARY\\r\\nContent-Type: application/json; charset=UTF-8\\r\\n\\r\\n' + JSON.stringify({name: $('Prepare Content').item.json.doc_title, mimeType: 'application/vnd.google-apps.document', parents: [$('Set Config').first().json.gdrive_folder_id]}) + '\\r\\n--WORKFLOW_GDOC_BOUNDARY\\r\\nContent-Type: text/html; charset=UTF-8\\r\\n\\r\\n' + $('Prepare Content').item.json.content_gdoc_html + '\\r\\n--WORKFLOW_GDOC_BOUNDARY--' }}",
+        "options": {}
+      },
+      "id": "5981394c-2fd8-4f27-9afe-453f72b2c735",
+      "name": "Docs Create (Upload HTML→GDoc)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -576,
+        912
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "cY4ArU5wi2Ptf9Oi",
+          "name": "Google Drive moja-stranka.sk"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Docs Create').item.json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $('Prepare Content').item.json.content_clean }}"
+            }
+          ]
+        }
+      },
+      "id": "8f5ce919-ea32-406a-b21e-9c60d6070383",
+      "name": "Docs Insert Content",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -5056,
+        496
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "acUBDenLeRIwxgCk",
+          "name": "Google Docs moja-stranka.sk"
+        }
+      },
+      "disabled": true,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "multipart/related; boundary=WORKFLOW_HTML_BOUNDARY",
+        "body": "={{ '--WORKFLOW_HTML_BOUNDARY\\r\\nContent-Type: application/json; charset=UTF-8\\r\\n\\r\\n' + JSON.stringify({name: $('Prepare Content').item.json.doc_title_html, mimeType: 'application/vnd.google-apps.document', parents: [$('Set Config').first().json.gdrive_folder_id]}) + '\\r\\n--WORKFLOW_HTML_BOUNDARY\\r\\nContent-Type: text/plain; charset=UTF-8\\r\\n\\r\\n' + $('Prepare Content').item.json.content_html + '\\r\\n--WORKFLOW_HTML_BOUNDARY--' }}",
+        "options": {}
+      },
+      "id": "582cad05-efa0-4e2e-9a68-8c4440682759",
+      "name": "Docs Create HTML",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -352,
+        912
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "cY4ArU5wi2Ptf9Oi",
+          "name": "Google Drive moja-stranka.sk"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Docs Create HTML').item.json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $('Prepare Content').item.json.content_html }}"
+            }
+          ]
+        }
+      },
+      "id": "0bedb7f3-b229-4ebf-aed9-f554166da847",
+      "name": "Docs Insert HTML",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        912
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "acUBDenLeRIwxgCk",
+          "name": "Google Docs moja-stranka.sk"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.sheet_name }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "slug": "={{ $('Prepare Content').item.json.slug }}",
+            "wp_id": "={{ $('Prepare Content').item.json.wp_id }}",
+            "title": "={{ $('Prepare Content').item.json.title }}",
+            "post_type": "={{ $('Prepare Content').item.json.post_type }}",
+            "extraction_status": "extracted",
+            "gdoc_id": "={{ $('Docs Create (Upload HTML→GDoc)').item.json.id }}",
+            "gdoc_url": "={{ 'https://docs.google.com/document/d/' + $('Docs Create (Upload HTML→GDoc)').item.json.id + '/edit' }}",
+            "gdoc_html_id": "={{ $('Docs Create HTML').item.json.id }}",
+            "gdoc_html_url": "={{ 'https://docs.google.com/document/d/' + $('Docs Create HTML').item.json.id + '/edit' }}",
+            "extracted_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "slug"
+          ],
+          "schema": [
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "wp_id",
+              "displayName": "wp_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "post_type",
+              "displayName": "post_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "extraction_status",
+              "displayName": "extraction_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "gdoc_id",
+              "displayName": "gdoc_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "gdoc_url",
+              "displayName": "gdoc_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "gdoc_html_id",
+              "displayName": "gdoc_html_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "gdoc_html_url",
+              "displayName": "gdoc_html_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "extracted_at",
+              "displayName": "extracted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f80addc4-2eaa-4400-bbcc-ee6a724952a6",
+      "name": "Sheets Update Extracted",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        96,
+        912
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vAfXWITi6NhhXukp",
+          "name": "moja-stranka.sk Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {\n  json: {\n    title:         $('Prepare Content').item.json.title,\n    slug:          $('Prepare Content').item.json.slug,\n    wp_id:         $('Prepare Content').item.json.wp_id,\n    post_type:     $('Prepare Content').item.json.post_type,\n    gdoc_url:      'https://docs.google.com/document/d/' + $('Docs Create (Upload HTML→GDoc)').item.json.id + '/edit',\n    gdoc_html_url: 'https://docs.google.com/document/d/' + $('Docs Create HTML').item.json.id + '/edit'\n  }\n};"
+      },
+      "id": "d8a8b128-1b7d-4b8e-a71a-23990f99604e",
+      "name": "Collect Post Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "posts",
+        "options": {}
+      },
+      "id": "1c278412-c59f-429e-8446-f91206edfece",
+      "name": "Aggregate Posts",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        544,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const posts = $input.first().json.posts || [];\nconst count = posts.length;\n\nif (count === 0) {\n  return [{ json: { skip: true, message: '' } }];\n}\n\nconst typeIcon = (type) => {\n  if (type === 'terminologia') return '📚';\n  if (type === 'hub-destinacii') return '🗺️';\n  return '📄';\n};\n\nconst lines = posts.map(p =>\n  `${typeIcon(p.post_type)} <${p.gdoc_url}|${p.title}> · <${p.gdoc_html_url}|HTML>\\n   \\`${p.slug}\\` · WP ID: ${p.wp_id}`\n);\n\nconst message = [\n  `✅ *Extrakcia do Google Docs dokončená*`,\n  ``,\n  `📊 Extrahovaných článkov: *${count}*`,\n  `📁 Priečinok: <https://drive.google.com/drive/folders/1p3jPAIZBJKRHNCF-q4MMr6eTtdNGemFa|mojastranka_allposts>`,\n  ``,\n  ...lines\n].join('\\n');\n\nconsole.log(`[Build Slack Summary] Správa pre ${count} postov pripravená.`);\nreturn [{ json: { skip: false, count, message } }];"
+      },
+      "id": "8e2e3fde-e43d-4e38-a3dd-fda06184aa21",
+      "name": "Build Slack Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0AT3KG6H2B",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "text": "={{ $json.message }}",
+        "otherOptions": {}
+      },
+      "id": "4575bc0f-b6d0-4f93-8b90-fbbdb6dfa0e4",
+      "name": "Slack Summary",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1216,
+        912
+      ],
+      "webhookId": "698638d2-d591-46da-9137-a1982469b199",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "xg1L5zEAQeXhQnN4",
+          "name": "Slack account moja-stranka.sk"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0AT3KG6H2B",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "text": "=ℹ️ *moja-stranka.sk – nič nové na spracovanie*\nDátum: {{ $now.toISO() }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        -1696,
+        1104
+      ],
+      "id": "3fa7f95e-34f9-4f28-a12e-3b5cabbdd589",
+      "name": "Send a message",
+      "webhookId": "d073b6af-5723-4c77-9ae6-7613d9ab8ede",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "xg1L5zEAQeXhQnN4",
+          "name": "Slack account moja-stranka.sk"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sitemapItems = items.filter(i => i.json._source === 'sitemap');\nconst sheetItems   = items.filter(i => i.json._source === 'sheet');\n\nconst sheetBySlug = {};\nfor (const i of sheetItems) {\n  const slug = String(i.json.slug || '').trim();\n  if (slug) sheetBySlug[slug] = i.json;\n}\n\nconst modified = [];\n\nfor (const si of sitemapItems) {\n  const slug = String(si.json.slug || '').trim();\n  if (!slug) continue;\n\n  const row = sheetBySlug[slug];\n  if (!row) continue;\n\n  const status = String(row.extraction_status || '').trim().toLowerCase();\n  if (status === 'pending' || status === '') continue;\n\n  const sitemapDate = String(si.json.date_modified || '').substring(0, 10);\n  const sheetDate   = String(row.date_modified   || '').substring(0, 10);\n\n  if (!sitemapDate || !sheetDate) continue;\n  if (sitemapDate <= sheetDate) continue;\n\n  console.log(`[Find Modified] Zmena detekovaná: ${slug} | sheet: ${sheetDate} → sitemap: ${sitemapDate} | status: ${status}`);\n\n  modified.push({\n    json: {\n      has_modified:  true,\n      slug,\n      post_type:     String(row.post_type  || si.json.post_type || ''),\n      date_modified: si.json.date_modified,\n      link:          si.json.link || String(row.link || ''),\n      site_url:      String(row.site_url   || si.json.site_url || ''),\n      gdoc_id:       String(row.gdoc_id      || '').trim(),\n      gdoc_html_id:  String(row.gdoc_html_id || '').trim()\n    }\n  });\n}\n\nconsole.log(`[Find Modified] Celkovo zmenených postov: ${modified.length}`);\n\nif (modified.length === 0) {\n  return [{ json: { has_modified: false, count: 0 } }];\n}\n\nreturn modified;"
+      },
+      "id": "7ae1c71e-5f4a-4b95-a522-efd2a2358971",
+      "name": "Find Modified Posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3040,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "v12-mod-cond-01",
+              "leftValue": "={{ $json.has_modified }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ce1cec25-c509-49c0-a8e8-87638d13b96b",
+      "name": "IF Has Modified",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2816,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = [];\n\nfor (const item of items) {\n  const base = {\n    slug:          item.json.slug,\n    post_type:     item.json.post_type,\n    date_modified: item.json.date_modified,\n    link:          item.json.link,\n    site_url:      item.json.site_url\n  };\n\n  const gdocId     = item.json.gdoc_id;\n  const gdocHtmlId = item.json.gdoc_html_id;\n\n  if (gdocId) {\n    out.push({ json: { ...base, doc_id: gdocId } });\n  }\n  if (gdocHtmlId) {\n    out.push({ json: { ...base, doc_id: gdocHtmlId } });\n  }\n  if (!gdocId && !gdocHtmlId) {\n    out.push({ json: { ...base, doc_id: null } });\n  }\n}\n\nconst realDeletions = out.filter(i => i.json.doc_id !== null).length;\nconsole.log(`[Prepare Doc IDs] Items na zmazanie: ${realDeletions} | Total items: ${out.length}`);\nreturn out;"
+      },
+      "id": "e4ff5e69-a836-4cdd-a20a-0ea5fdc52c47",
+      "name": "Prepare Doc IDs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2592,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $json.doc_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "options": {}
+      },
+      "id": "b0c637d5-c3e5-4b39-8038-f5649219c932",
+      "name": "Delete Drive Doc",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2368,
+        1248
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "cY4ArU5wi2Ptf9Oi",
+          "name": "Google Drive moja-stranka.sk"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const seen = new Set();\nconst out  = [];\n\nfor (const item of items) {\n  const slug = String(item.json.slug || '').trim();\n  if (!slug) continue;\n  if (seen.has(slug)) continue;\n  seen.add(slug);\n  out.push({\n    json: {\n      slug:          item.json.slug,\n      post_type:     item.json.post_type,\n      date_modified: item.json.date_modified,\n      link:          item.json.link,\n      site_url:      item.json.site_url\n    }\n  });\n}\n\nconsole.log(`[Deduplicate Slugs] Unikátnych slugov na Sheets reset: ${out.length}`);\nreturn out.length > 0 ? out : [{ json: { slug: null } }];"
+      },
+      "id": "648d6058-0a71-4a37-8f3f-60bc37dc3631",
+      "name": "Deduplicate Slugs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2144,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.sheet_name }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "slug": "={{ $json.slug }}",
+            "extraction_status": "pending",
+            "date_modified": "={{ $json.date_modified }}",
+            "gdoc_id": "",
+            "gdoc_url": "",
+            "gdoc_html_id": "",
+            "gdoc_html_url": "",
+            "extracted_at": ""
+          },
+          "matchingColumns": [
+            "slug"
+          ],
+          "schema": [
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "extraction_status",
+              "displayName": "extraction_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "date_modified",
+              "displayName": "date_modified",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "gdoc_id",
+              "displayName": "gdoc_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "gdoc_url",
+              "displayName": "gdoc_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "gdoc_html_id",
+              "displayName": "gdoc_html_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "gdoc_html_url",
+              "displayName": "gdoc_html_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "extracted_at",
+              "displayName": "extracted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bf226f02-af5d-4e1c-8588-ccdab8a426a2",
+      "name": "Sheets Reset to Pending",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1920,
+        1248
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vAfXWITi6NhhXukp",
+          "name": "moja-stranka.sk Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const count = items.length;\nconst typeIcon = (type) => {\n  if (type === 'terminologia') return '📚';\n  if (type === 'hub-destinacii') return '🗺️';\n  return '📄';\n};\nconst lines = items.map(i => `${typeIcon(i.json.post_type)} \\`${i.json.slug}\\` → nový lastmod: ${String(i.json.date_modified || '').substring(0, 10)}`).join('\\n');\nconst message = [\n  `🔄 *moja-stranka.sk – Upravené články – re-extrakcia spustená v tomto behu*`,\n  ``,\n  `📊 Počet resetovaných a re-extrahovaných: *${count}*`,\n  `⚡ GDocs budú vytvorené v tomto behu (nie až o 6h)`,\n  ``,\n  lines\n].join('\\n');\nreturn [{ json: { message } }];"
+      },
+      "id": "fac6111c-6ea0-42fc-9e12-511fb5794c89",
+      "name": "Build Modified Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1696,
+        1296
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0AT3KG6H2B",
+          "mode": "list",
+          "cachedResultName": "n8n"
+        },
+        "text": "={{ $json.message }}",
+        "otherOptions": {}
+      },
+      "id": "1595617f-b318-4c1f-a4ba-ef0a18b61865",
+      "name": "Slack Modified Notify",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        -1472,
+        1296
+      ],
+      "webhookId": "v12-slack-mod-webhook-0008",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "xg1L5zEAQeXhQnN4",
+          "name": "Slack account moja-stranka.sk"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.spreadsheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Set Config').first().json.sheet_name }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "slug": "={{ $json.slug }}",
+            "extraction_status": "skip_error",
+            "extracted_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "slug"
+          ],
+          "schema": [
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "extraction_status",
+              "displayName": "extraction_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "extracted_at",
+              "displayName": "extracted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5a4ff9c0-0a7e-47bf-958c-9b6a0a4f119c",
+      "name": "Sheets Mark Skip Error",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1024,
+        1008
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vAfXWITi6NhhXukp",
+          "name": "moja-stranka.sk Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "hextr01",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4dd8724d-332a-4c3e-a4a6-8433b18f9f4c",
+      "name": "IF Has Extractions",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        912
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Config": {
+      "main": [
+        [
+          {
+            "node": "Fetch Sitemap Index",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sheets Read All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Sitemap Index": {
+      "main": [
+        [
+          {
+            "node": "Parse & Filter Sitemaps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Filter Sitemaps": {
+      "main": [
+        [
+          {
+            "node": "Fetch Sub-Sitemap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Sub-Sitemap": {
+      "main": [
+        [
+          {
+            "node": "Re-attach Post Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Re-attach Post Type": {
+      "main": [
+        [
+          {
+            "node": "Parse Sub-Sitemap URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Sub-Sitemap URLs": {
+      "main": [
+        [
+          {
+            "node": "Merge Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Read All": {
+      "main": [
+        [
+          {
+            "node": "Tag Sheet Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag Sheet Rows": {
+      "main": [
+        [
+          {
+            "node": "Merge Sources",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Sources": {
+      "main": [
+        [
+          {
+            "node": "Find New Posts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Find Modified Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find New Posts": {
+      "main": [
+        [
+          {
+            "node": "IF Has New Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has New Posts": {
+      "main": [
+        [
+          {
+            "node": "Sheets Append Pending",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sheets Get Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Append Pending": {
+      "main": [
+        [
+          {
+            "node": "Collapse to Trigger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collapse to Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sheets Get Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Get Pending": {
+      "main": [
+        [
+          {
+            "node": "Filter Pending Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Pending Only": {
+      "main": [
+        [
+          {
+            "node": "IF Has Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Pending": {
+      "main": [
+        [
+          {
+            "node": "GET Full WP Post",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Full WP Post": {
+      "main": [
+        [
+          {
+            "node": "Prepare Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Content": {
+      "main": [
+        [
+          {
+            "node": "IF Skip Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Skip Post": {
+      "main": [
+        [
+          {
+            "node": "Drive Search Doc",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sheets Mark Skip Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drive Search Doc": {
+      "main": [
+        [
+          {
+            "node": "IF Doc Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Doc Exists": {
+      "main": [
+        [
+          {
+            "node": "Sheets Mark Already Extracted",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Docs Create (Upload HTML→GDoc)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Docs Create (Upload HTML→GDoc)": {
+      "main": [
+        [
+          {
+            "node": "Docs Create HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Docs Create HTML": {
+      "main": [
+        [
+          {
+            "node": "Docs Insert HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Docs Insert HTML": {
+      "main": [
+        [
+          {
+            "node": "Sheets Update Extracted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Update Extracted": {
+      "main": [
+        [
+          {
+            "node": "Collect Post Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Post Data": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Posts": {
+      "main": [
+        [
+          {
+            "node": "Build Slack Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Slack Summary": {
+      "main": [
+        [
+          {
+            "node": "IF Has Extractions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Modified Posts": {
+      "main": [
+        [
+          {
+            "node": "IF Has Modified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Modified": {
+      "main": [
+        [
+          {
+            "node": "Prepare Doc IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Doc IDs": {
+      "main": [
+        [
+          {
+            "node": "Delete Drive Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Drive Doc": {
+      "main": [
+        [
+          {
+            "node": "Deduplicate Slugs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplicate Slugs": {
+      "main": [
+        [
+          {
+            "node": "Sheets Reset to Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Reset to Pending": {
+      "main": [
+        [
+          {
+            "node": "Build Modified Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GET Full WP Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Modified Message": {
+      "main": [
+        [
+          {
+            "node": "Slack Modified Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Extractions": {
+      "main": [
+        [
+          {
+            "node": "Slack Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "89c819e7-7289-4e1f-990b-886402a82e90",
+  "meta": {
+    "instanceId": "8f7f3271fbc918405eed8e17310297b5a762eebf299f462d6fb6120bc05fe840"
+  },
+  "id": "Qlt7xt6Ni2B3sBHK",
+  "tags": []
+}

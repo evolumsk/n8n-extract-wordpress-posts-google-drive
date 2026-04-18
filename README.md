@@ -30,6 +30,8 @@
 
 ```
 WordPress sitemap  →  porovnaj s pamäťou (Sheets)  →  extrakt obsah  →  ulož ako GDocs  →  notifikuj Slack
+
+https://youtu.be/g6C6_bXfKKs
 ```
 
 **Dve paralelné vetvy:**

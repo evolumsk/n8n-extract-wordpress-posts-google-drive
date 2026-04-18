@@ -182,8 +182,8 @@ Workflow číta tieto sitemaps (upraviteľné v node `Parse & Filter Sitemaps`):
 ```javascript
 const relevantPatterns = [
   'post-sitemap.xml',          // štandardné WP posty
-  'terminologia-sitemap.xml',  // vlastný CPT
-  'hub-destinacii-sitemap.xml' // vlastný CPT
+  'cpt1-sitemap.xml',  // vlastný CPT
+  'cpt2-sitemap.xml' // vlastný CPT
 ];
 ```
 

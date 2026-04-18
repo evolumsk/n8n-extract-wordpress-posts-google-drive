@@ -43,8 +43,7 @@ WordPress sitemap  →  porovnaj s pamäťou (Sheets)  →  extrakt obsah  →  
 
 | Súbor | Popis |
 |---|---|
-| `workflow-n8n-clean-extract-wordpress-posts-to-drive.json
-` | n8n workflow – importujte priamo do n8n |
+| `workflow-n8n-clean-extract-wordpress-posts-to-drive.json`| n8n workflow – importujte priamo do n8n |
 | `DOCUMENTATION.md` | Podrobná dokumentácia s diagrammi a návodmi |
 
 ---

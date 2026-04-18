@@ -43,7 +43,8 @@ WordPress sitemap  →  porovnaj s pamäťou (Sheets)  →  extrakt obsah  →  
 
 | Súbor | Popis |
 |---|---|
-| `workflow.json` | n8n workflow – importujte priamo do n8n |
+| `workflow-n8n-clean-extract-wordpress-posts-to-drive.json
+` | n8n workflow – importujte priamo do n8n |
 | `DOCUMENTATION.md` | Podrobná dokumentácia s diagrammi a návodmi |
 
 ---
@@ -147,7 +148,7 @@ Workflow porovnáva dátum `lastmod` z XML sitemapy s hodnotou `date_modified` v
 Pre každý post vzniknú 2 Google Docs:
 
 ```
-📁 vas-priecинок/
+📁 vas-priecinok/
 ├── 📄 [wp_id] Titulok článku          ← čitateľná verzia + metadáta
 └── 📄 [wp_id] Titulok článku – HTML   ← čisté HTML pre copy-paste do WP
 ```

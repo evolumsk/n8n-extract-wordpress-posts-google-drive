@@ -1,0 +1,24 @@
+Potrebujem tento n8n prispôsobiť pre moju stránku ako expert na automatizáciu.
+
+⚠️ DÔLEŽITÉ — prečítaj pred akoukoľvek zmenou:
+
+Nemeň žiadne nody, logiku, prepojenia ani štruktúru workflow
+Neodstraňuj žiadne existujúce nastavenia, polia ani hodnoty
+Nedoplňuj nič navyše — žiadne nové nody, kroky ani podmienky
+Jediná povolená akcia je vyplniť prázdne alebo placeholder hodnoty uvedené nižšie
+Ak si nie si istý čo zmeniť — nemeň nič
+
+
+Stránka: https://[your-website].sk
+Google Sheet URL: https://docs.google.com/spreadsheets/d/[YOUR_SHEET_ID]/edit?gid=0#gid=0
+Zložka kam sa všetko ukladá: https://drive.google.com/drive/u/4/folders/[YOUR_FOLDER_ID]
+WordPress cesta: wordpress-extract-posts/content
+Moje ID z n8n — vyplň iba tieto hodnoty, nič iné nemeň:
+SlužbaIDGoogle Sheets[YOUR_GOOGLE_SHEETS_CREDENTIAL_ID]Google Drive[YOUR_GOOGLE_DRIVE_CREDENTIAL_ID]Google Docs[YOUR_GOOGLE_DOCS_CREDENTIAL_ID]Slack[YOUR_SLACK_CREDENTIAL_ID]WordPress[YOUR_WORDPRESS_CREDENTIAL_ID]
+WordPress API:
+ParameterHodnotaWordPress URLhttps://[your-website].skREST API endpointhttps://[your-website].sk/wp-json/wp/v2Používateľské meno[YOUR_WP_USERNAME]Application Password[YOUR_WP_APPLICATION_PASSWORD]
+Slack channel URL: https://[your-workspace].slack.com/archives/[YOUR_CHANNEL_ID]
+
+
+🔒 Záverečná kontrola pred odoslaním:
+Skontroluj že si zmenil iba hodnoty v tabuľkách vyššie a všetko ostatné vo workflow zostalo presne tak ako bolo.

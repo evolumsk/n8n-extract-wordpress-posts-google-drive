@@ -1,4 +1,4 @@
-# 🔄 WordPress → Google Drive Extractor
+# WordPress → Google Drive Extractor
 
 > **n8n workflow** – Automaticky sleduje WordPress posty cez XML sitemaps, extrahuje obsah a ukladá do Google Drive ako Google Docs. Detekuje nové aj upravené posty. Notifikuje cez Slack.
 
@@ -34,8 +34,8 @@ WordPress sitemap  →  porovnaj s pamäťou (Sheets)  →  extrakt obsah  →  
 
 **Dve paralelné vetvy:**
 
-- 📝 **Vetva 1 – Nové posty:** Nájde posty v sitemape, ktoré ešte nie sú v Sheets → vytvorí 2 GDocs (čitateľná verzia + čisté HTML)
-- 🔄 **Vetva 2 – Upravené posty:** Detekuje zmeny cez `lastmod` → zmaže staré GDocs → re-extrahuje **v tom istom behu**
+- **Vetva 1 – Nové posty:** Nájde posty v sitemape, ktoré ešte nie sú v Sheets → vytvorí 2 GDocs (čitateľná verzia + čisté HTML)
+- **Vetva 2 – Upravené posty:** Detekuje zmeny cez `lastmod` → zmaže staré GDocs → re-extrahuje v tom istom behu
 
 ---
 
@@ -43,7 +43,7 @@ WordPress sitemap  →  porovnaj s pamäťou (Sheets)  →  extrakt obsah  →  
 
 | Súbor | Popis |
 |---|---|
-| `workflow.json` | n8n workflow – importuj priamo do n8n |
+| `workflow.json` | n8n workflow – importujte priamo do n8n |
 | `DOCUMENTATION.md` | Podrobná dokumentácia s diagrammi a návodmi |
 
 ---
@@ -61,36 +61,36 @@ WordPress sitemap  →  porovnaj s pamäťou (Sheets)  →  extrakt obsah  →  
 
 ```bash
 # V n8n UI:
-# Workflows → Import from file → vyber workflow.json
+# Workflows → Import from file → vyberte workflow.json
 ```
 
-### 3. Vytvor Google Sheets tabuľku
+### 3. Vytvorte Google Sheets tabuľku
 
-Vytvor novú tabuľku, premenuj záložku na `memory` a vlož hlavičku do riadku 1:
+Vytvorte novú tabuľku, premenujte záložku na `memory` a vložte hlavičku do riadku 1:
 
 ```
 wp_id	post_type	slug	title	status	date_published	date_modified	link	extraction_status	gdoc_id	gdoc_url	gdoc_html_id	gdoc_html_url	extracted_at	site_url
 ```
 
-### 4. Vytvor Google Drive priečinok
+### 4. Vytvorte Google Drive priečinok
 
-1. Choď na [drive.google.com](https://drive.google.com) → **+ Nový → Priečinok**
-2. Otvor priečinok, skopíruj ID z URL:
+1. Choďte na [drive.google.com](https://drive.google.com) → **+ Nový → Priečinok**
+2. Otvorte priečinok, skopírujte ID z URL:
    ```
    https://drive.google.com/drive/folders/ [TU JE FOLDER ID]
    ```
 
-### 5. Vyplň Set Config
+### 5. Vyplňte Set Config
 
 | Parameter | Hodnota |
 |---|---|
-| `site_url` | `https://tvoj-web.sk` (bez `/` na konci) |
-| `site_label` | `tvoj-web.sk` |
+| `site_url` | `https://vas-web.sk` (bez `/` na konci) |
+| `site_label` | `vas-web.sk` |
 | `spreadsheet_id` | ID z URL Google Sheets |
 | `sheet_name` | `memory` |
 | `gdrive_folder_id` | ID z URL Google Drive priečinka |
 
-### 6. Nastav credentials
+### 6. Nastavte credentials
 
 #### WordPress API
 ```
@@ -101,30 +101,30 @@ V n8n: **Credentials → New → WordPress API**
 #### Google (Sheets + Drive + Docs)
 ```
 console.cloud.google.com → APIs & Services → Enable:
-  ✅ Google Sheets API
-  ✅ Google Drive API
-  ✅ Google Docs API
+  - Google Sheets API
+  - Google Drive API
+  - Google Docs API
 
 → Credentials → Create OAuth 2.0 Client ID
 → Redirect URI: https://[n8n-host]/rest/oauth2-credential/callback
 ```
-V n8n: vytvor 3 separate credentials (Sheets OAuth2, Drive OAuth2, Docs OAuth2)
+V n8n: vytvorte 3 separate credentials (Sheets OAuth2, Drive OAuth2, Docs OAuth2)
 
 #### Slack
 ```
 api.slack.com/apps → Create App → OAuth & Permissions
   Scopes: chat:write, channels:read
-→ Install to Workspace → skopíruj Bot User OAuth Token
-→ /invite @tvoj-bot do kanála
+→ Install to Workspace → skopírujte Bot User OAuth Token
+→ /invite @vas-bot do kanála
 ```
 
-### 7. Priraď credentials ku nodom
+### 7. Priraďte credentials ku nodom
 
-Otvor každý node a priraď správny credential. Kompletný zoznam nájdeš v [DOCUMENTATION.md](DOCUMENTATION.md).
+Otvorte každý node a priraďte správny credential. Kompletný zoznam nájdete v [DOCUMENTATION.md](DOCUMENTATION.md).
 
-### 8. Spusti manuálne
+### 8. Spustite manuálne
 
-Klikni **▶ Execute workflow** a skontroluj výsledky v n8n editore.
+Kliknite **Execute workflow** a skontrolujte výsledky v n8n editore.
 
 ---
 
@@ -144,10 +144,10 @@ Workflow porovnáva dátum `lastmod` z XML sitemapy s hodnotou `date_modified` v
 
 ## Výstupné súbory v Google Drive
 
-Pre každý post vzniknú **2 Google Docs:**
+Pre každý post vzniknú 2 Google Docs:
 
 ```
-📁 tvoj-priečinok/
+📁 vas-priecинок/
 ├── 📄 [wp_id] Titulok článku          ← čitateľná verzia + metadáta
 └── 📄 [wp_id] Titulok článku – HTML   ← čisté HTML pre copy-paste do WP
 ```
@@ -169,15 +169,15 @@ Pre každý post vzniknú **2 Google Docs:**
 
 | Správa | Kedy |
 |---|---|
-| ✅ Súhrn s linkami na GDocs | Po úspešnej extrakcii |
-| 🔄 Zoznam upravených postov | Keď sa detekuje zmena `lastmod` |
-| ℹ️ Nič nové | Keď nie sú žiadne pending posty |
+| Súhrn s linkami na GDocs | Po úspešnej extrakcii |
+| Zoznam upravených postov | Keď sa detekuje zmena `lastmod` |
+| Nič nové | Keď nie sú žiadne pending posty |
 
 ---
 
 ## Konfigurácia sitemáp
 
-Workflow čítа tieto sitemaps (upraviteľné v node `Parse & Filter Sitemaps`):
+Workflow číta tieto sitemaps (upraviteľné v node `Parse & Filter Sitemaps`):
 
 ```javascript
 const relevantPatterns = [
@@ -187,15 +187,23 @@ const relevantPatterns = [
 ];
 ```
 
-Pre iné typy postov pridaj vlastný pattern.
+Pre iné typy postov pridajte vlastný pattern.
 
 ---
 
 ## Podrobná dokumentácia
 
-Kompletný návod vrátane diagramov, troubleshootingu a step-by-step nastavenia každého API nájdeš v súbore:
+Kompletný návod vrátane diagramov, troubleshootingu a step-by-step nastavenia každého API nájdete v súbore:
 
-📄 **[DOCUMENTATION.md](DOCUMENTATION.md)**
+[DOCUMENTATION.md](DOCUMENTATION.md)
+
+---
+
+## Viac podobných projektov
+
+Venujem sa WordPressu, automatizáciám a praktickým riešeniam pre weby. Ďalšie podobné projekty a štúdie nájdete na:
+
+[https://evolum.sk/studie-projekty/](https://evolum.sk/studie-projekty/)
 
 ---
 
